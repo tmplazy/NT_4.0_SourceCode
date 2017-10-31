@@ -154,7 +154,6 @@ typedef NTSTATUS (*OB_QUERYNAME_METHOD)(
 
 //
 // Object Type Structure
-//
 
 typedef struct _OBJECT_TYPE_INITIALIZER {
     USHORT Length;
@@ -169,6 +168,8 @@ typedef struct _OBJECT_TYPE_INITIALIZER {
     POOL_TYPE PoolType;
     ULONG DefaultPagedPoolCharge;
     ULONG DefaultNonPagedPoolCharge;
+//这样不同的对象就可以有不同的操作函数，比如打开文件操作对象的函数
+//和打开进程对象的函数就会不同
     OB_DUMP_METHOD DumpProcedure;
     OB_OPEN_METHOD OpenProcedure;
     OB_CLOSE_METHOD CloseProcedure;
@@ -180,6 +181,7 @@ typedef struct _OBJECT_TYPE_INITIALIZER {
 
 // end_ntifs
 
+//类型对象
 typedef struct _OBJECT_TYPE {
     ERESOURCE Mutex;
     LIST_ENTRY TypeList;
@@ -202,6 +204,7 @@ typedef struct _OBJECT_TYPE {
 
 #define NUMBER_HASH_BUCKETS 37
 
+//另一个比较特殊的对象，可以通过根目录对象遍历系统中的所有对象
 typedef struct _OBJECT_DIRECTORY {
     struct _OBJECT_DIRECTORY_ENTRY *HashBuckets[ NUMBER_HASH_BUCKETS ];
     struct _OBJECT_DIRECTORY_ENTRY **LookupBucket;
@@ -279,12 +282,12 @@ typedef struct _OBJECT_CREATE_INFORMATION {
 typedef struct _OBJECT_HEADER {
     union {
         struct {
-            LONG PointerCount;
-            LONG HandleCount;
+            LONG PointerCount;//内核中可能直接通过指针对对象引用
+            LONG HandleCount;//用户层
         };
         LIST_ENTRY Entry;
     };
-    POBJECT_TYPE Type;
+    POBJECT_TYPE Type;//指向对应的类型对象
     UCHAR NameInfoOffset;
     UCHAR HandleInfoOffset;
     UCHAR QuotaInfoOffset;
